@@ -9,21 +9,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        this.supportActionBar?.hide()
-        elegirBase()
+        binding = ActivityMainBinding.inflate(layoutInflater) // Infla la vista
+        setContentView(binding.root) // Setea la vista
+        this.supportActionBar?.hide() // Oculta la barra de acciones
+        elegirBase() // Eleccion de la base
     }
 
-    private fun elegirBase() = with(binding) {
-        crdDecimal.setOnClickListener { baseNumerica(10) }
-        crdBinario.setOnClickListener { baseNumerica(2) }
-        crdOctal.setOnClickListener { baseNumerica(8) }
-        crdHexadecimal.setOnClickListener { baseNumerica(16) }
+    //Elegir la base de la conversión
+    private fun elegirBase() = with(binding) { // Obtiene los elementos de la vista
+        crdDecimal.setOnClickListener { baseNumerica(10) } // Base decimal
+        crdBinario.setOnClickListener { baseNumerica(2) } // Base binaria
+        crdOctal.setOnClickListener { baseNumerica(8) } // Base octal
+        crdHexadecimal.setOnClickListener { baseNumerica(16) } // Base hexadecimal
     }
 
-    private fun baseNumerica(base:Int) = Intent(this,Resultados::class.java).apply {
-        putExtra("position", base)
-        startActivity(this)
-    }
+    //Elegir la base de la conversión y pasar a la siguiente actividad
+    private fun baseNumerica(base: Int) =
+        Intent(this, Resultados::class.java).apply { // Intent para pasar a la siguiente actividad
+            putExtra("position", base) // Pasa la base a la siguiente actividad
+            startActivity(this) // Inicia la actividad
+        }
 }
