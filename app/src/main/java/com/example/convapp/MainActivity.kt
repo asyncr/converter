@@ -17,9 +17,9 @@ class MainActivity : AppCompatActivity() {
 
     //Elegir la base de la conversión
     private fun elegirBase() = with(binding) { // Obtiene los elementos de la vista
-        crdDecimal.setOnClickListener { baseNumerica(10) } // Base decimal
         crdBinario.setOnClickListener { baseNumerica(2) } // Base binaria
         crdOctal.setOnClickListener { baseNumerica(8) } // Base octal
+        crdDecimal.setOnClickListener { baseNumerica(10) } // Base decimal
         crdHexadecimal.setOnClickListener { baseNumerica(16) } // Base hexadecimal
     }
 
