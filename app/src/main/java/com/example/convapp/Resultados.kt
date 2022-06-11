@@ -13,7 +13,6 @@ class Resultados : AppCompatActivity() {
     private lateinit var binding: ActivityResultadosBinding
     private lateinit var resultado: MutableList<TextView>
     private lateinit var bases: MutableList<Int>
-
     private var base: Int = 0
     private var number: String = ""
 
@@ -24,21 +23,30 @@ class Resultados : AppCompatActivity() {
         this.supportActionBar?.hide() //Oculta la barra de la aplicación
         base = intent.getIntExtra("position", 0) //Se obtiene la base de la conversion
         obtenerElementos() //Obtiene los elementos de la interfaz
-        mostrarBase() //Muestra la base en la que se está trabajando
+        mostrarBase() //Muestra el texto de la base en la que se está trabajando
         detectarCambio(binding.edtNumero, base) //Detecta cambios en el campo de texto
-        binding.btnRegresar.setOnClickListener { finish() } //Regresa a la pantalla anterior
+        regresar() //Regresa a la pantalla anterior
     }
 
-    //Muestra un mensaje de prueba en el Toast
-    fun sms(string: String) = Toast.makeText(this, "$string", Toast.LENGTH_SHORT).show()
-
     //Obtiene los elementos de la vista
-    fun obtenerElementos() = with(binding) {
+    private fun obtenerElementos() = with(binding) {
         resultado = mutableListOf(tvRDecimal, tvRBinario, tvRHexadecimal, tvROctal)
         bases = mutableListOf(10, 2, 16, 8)
     }
 
-    //Funcion que detecta cambios en el EditText
+    //Funcion que muestra el nombre de la base seleccionada
+    fun mostrarBase() = binding.tvSubtitle.apply { text = subTitulo() }
+
+    //Funcion que retorna el texto de la base seleccionada
+    private fun subTitulo() = when (base) {
+        2 -> "Binario"
+        8 -> "Octal"
+        10 -> "Decimal"
+        16 -> "Hexadecimal"
+        else -> "Error"
+    }
+
+    //Funcion que detecta cambios en el EditText y calcula automaticamente
     fun detectarCambio(editText: EditText, base: Int) {
         with(editText) {
             addTextChangedListener(object : TextWatcher { //Añade un escuchador de cambios
@@ -61,25 +69,9 @@ class Resultados : AppCompatActivity() {
         }
     }
 
+    //Funcion que valida el numero ingresado es vacio y si es valido en relación a la base
     fun validarNumero(number: String) {
-        if (number.isNotEmpty() && selectedRegex(number)) {
-            resultados(number)
-        }else{
-            clean()
-        }
-    }
-
-    //Funcion que muestra el nombre de la base seleccionada
-    fun mostrarBase() {
-        binding.tvSubtitle.text = subTitulo()
-    }
-
-    private fun subTitulo() = when (base) {
-        2 -> "Binario"
-        8 -> "Octal"
-        10 -> "Decimal"
-        16 -> "Hexadecimal"
-        else -> "Error"
+        if (number.isNotEmpty() && selectedRegex(number)) general(number) else clean()
     }
 
     //Funcion para validar el numero ingresado en base a la base ingresada
@@ -91,49 +83,41 @@ class Resultados : AppCompatActivity() {
         else -> false
     }
 
-    //Funcion que valida si el numero ingresado es valido para la base seleccionada
-    private fun resultados(numero: String) {
+    //Funcion que calcula cada conversion en relacion a la base actual, la base en su posicion actual
+    // de la lista bases y muestra el resultado
+    private fun general(numero: String) {
+        this.resultado.forEachIndexed { i, element ->
+            if (base != bases[i]) {
+                element.text = obtenerFuncion(base, bases[i], numero)
+            } else {
+                element.text = numero
+            }
+        }
+    }
+
+    //Funcion que muestra la conversion en relacion a la base actual y la base de la lista bases en la posicion actual
+    private fun obtenerFuncion(base: Int, baseEspecial: Int, numero: String): String {
         when (base) {
-            2 -> binario(numero)
-            8 -> octal(numero)
-            10 -> decimal(numero)
-            16 -> hexadecimal(numero)
-            else -> sms("Funcion no implementada")
-        }
-    }
-
-    //Mostrar los datos de la base 2
-    private fun binario(numero: String) {
-        resultado.forEachIndexed { i, element ->
-            element.text = if(bases[i]!=base) Converter.binaryToAll(bases[i], numero) else numero
-        }
-    }
-
-    //Mostrar los datos de la base 8
-    private fun octal(numero: String) = resultado.forEachIndexed { i, element ->
-        element.text = if(bases[i]!=base) Converter.octalToAll(bases[i], numero) else numero
-    }
-
-    //Mostrar los datos de la base 16
-    private fun hexadecimal(numero: String) {
-        resultado.forEachIndexed { i, element ->
-            element.text = if(bases[i]!=base) Converter.hexaToAll(bases[i], numero) else numero
-        }
-    }
-
-    //Mostrar los datos de la base 10
-    private fun decimal(numero: String) {
-        resultado.forEachIndexed { i, element ->
-            element.text = if(bases[i]!=base) Converter.decimaltoAll(bases[i], numero.toInt()) else numero
+            2 -> return Converter.binaryToAll(baseEspecial, numero)
+            8 -> return Converter.octalToAll(baseEspecial, numero)
+            10 -> return Converter.decimaltoAll(baseEspecial, numero.toInt())
+            16 -> return Converter.hexaToAll(baseEspecial, numero)
+            else -> return "Error"
         }
     }
 
     //Lambdas que validan si el numero ingresado es valido para la base seleccionada
-    val regexBinary = {string:String -> !Regex("[^0123456789]").containsMatchIn(string)}
-    val regexOctal = {string:String -> !Regex("[^0123456789]").containsMatchIn(string)}
-    val regexHexa = {string:String -> !Regex("[^0123456789ABCDEF]").containsMatchIn(string)}
-    val regexDecimal = {string:String -> !Regex("[^0123456789]").containsMatchIn(string)}
+    val regexBinary = { string: String -> !Regex("[^0123456789]").containsMatchIn(string) }
+    val regexOctal = { string: String -> !Regex("[^0123456789]").containsMatchIn(string) }
+    val regexHexa = { string: String -> !Regex("[^0123456789ABCDEF]").containsMatchIn(string) }
+    val regexDecimal = { string: String -> !Regex("[^0123456789]").containsMatchIn(string) }
 
     //Funcion que "limpia" los resultados
     private fun clean() = resultado.forEach { it.text = "" }
+
+    //Funcion que regresa a la pantalla anterior
+    private fun regresar() = binding.btnRegresar.setOnClickListener { finish() }
+
+    //Muestra un mensaje de prueba en el Toast
+    private fun message(string: String) = Toast.makeText(this, "$string", Toast.LENGTH_SHORT).show()
 }
