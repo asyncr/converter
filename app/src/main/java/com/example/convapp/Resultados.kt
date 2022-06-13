@@ -24,7 +24,7 @@ class Resultados : AppCompatActivity() {
         base = intent.getIntExtra("position", 0) //Se obtiene la base de la conversion
         obtenerElementos() //Obtiene los elementos de la interfaz
         mostrarBase() //Muestra el texto de la base en la que se está trabajando
-        detectarCambio(binding.edtNumero, base) //Detecta cambios en el campo de texto
+        detectarCambio(binding.edtNumero) //Detecta cambios en el campo de texto
         regresar() //Regresa a la pantalla anterior
     }
 
@@ -35,7 +35,7 @@ class Resultados : AppCompatActivity() {
     }
 
     //Funcion que muestra el nombre de la base seleccionada
-    fun mostrarBase() = binding.tvSubtitle.apply { text = subTitulo() }
+    private fun mostrarBase() = binding.tvSubtitle.apply { text = subTitulo() }
 
     //Funcion que retorna el texto de la base seleccionada
     private fun subTitulo() = when (base) {
@@ -47,7 +47,7 @@ class Resultados : AppCompatActivity() {
     }
 
     //Funcion que detecta cambios en el EditText y calcula automaticamente
-    fun detectarCambio(editText: EditText, base: Int) {
+    private fun detectarCambio(editText: EditText) {
         with(editText) {
             addTextChangedListener(object : TextWatcher { //Añade un escuchador de cambios
                 override fun beforeTextChanged(
@@ -71,17 +71,22 @@ class Resultados : AppCompatActivity() {
 
     //Funcion que valida el numero ingresado es vacio y si es valido en relación a la base
     fun validarNumero(number: String) {
-        if (number.isNotEmpty() && selectedRegex(number)) general(number) else clean()
+        if (number.isNotEmpty() && seleccionarRegex(number)) general(number) else clean()
     }
 
     //Funcion para validar el numero ingresado en base a la base ingresada
-    private fun selectedRegex(string: String): Boolean = when (base) {
-        2 -> regexBinary(string)
-        8 -> regexOctal(string)
-        10 -> regexDecimal(string)
-        16 -> regexHexa(string)
-        else -> false
+    private fun seleccionarRegex(number: String): Boolean = validarRegex(number, obtenerRegex())
+
+    //Funcion que retorna el regex correspondiente a la base seleccionada
+    private fun obtenerRegex() = when (base) {
+        2,8 -> "^[0-1]*$"
+        10 -> "^[0-9]*$"
+        16 -> "^[0-9A-F]*$"
+        else -> ""
     }
+
+    //Lambda que valida si el numero ingresado es valido para la base seleccionada
+    val validarRegex = { numero: String,regexBase:String -> Regex(regexBase).containsMatchIn(numero) }
 
     //Funcion que calcula cada conversion en relacion a la base actual, la base en su posicion actual
     // de la lista bases y muestra el resultado
@@ -97,20 +102,14 @@ class Resultados : AppCompatActivity() {
 
     //Funcion que muestra la conversion en relacion a la base actual y la base de la lista bases en la posicion actual
     private fun obtenerFuncion(base: Int, baseEspecial: Int, numero: String): String {
-        when (base) {
-            2 -> return Converter.binaryToAll(baseEspecial, numero)
-            8 -> return Converter.octalToAll(baseEspecial, numero)
-            10 -> return Converter.decimaltoAll(baseEspecial, numero.toInt())
-            16 -> return Converter.hexaToAll(baseEspecial, numero)
-            else -> return "Error"
+        return when (base) {
+            2 -> Converter.binaryToAll(baseEspecial, numero)
+            8 -> Converter.octalToAll(baseEspecial, numero)
+            10 -> Converter.decimaltoAll(baseEspecial, numero.toInt())
+            16 -> Converter.hexaToAll(baseEspecial, numero)
+            else -> "Error"
         }
     }
-
-    //Lambdas que validan si el numero ingresado es valido para la base seleccionada
-    val regexBinary = { string: String -> !Regex("[^0123456789]").containsMatchIn(string) }
-    val regexOctal = { string: String -> !Regex("[^0123456789]").containsMatchIn(string) }
-    val regexHexa = { string: String -> !Regex("[^0123456789ABCDEF]").containsMatchIn(string) }
-    val regexDecimal = { string: String -> !Regex("[^0123456789]").containsMatchIn(string) }
 
     //Funcion que "limpia" los resultados
     private fun clean() = resultado.forEach { it.text = "" }
@@ -118,6 +117,4 @@ class Resultados : AppCompatActivity() {
     //Funcion que regresa a la pantalla anterior
     private fun regresar() = binding.btnRegresar.setOnClickListener { finish() }
 
-    //Muestra un mensaje de prueba en el Toast
-    private fun message(string: String) = Toast.makeText(this, "$string", Toast.LENGTH_SHORT).show()
 }
